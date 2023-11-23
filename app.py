@@ -61,7 +61,7 @@ if check_password():
     with st.sidebar:        
         app = option_menu(
             menu_title='SQUAD',
-            options=['Licença 2024', ],
+            options=['Licença 2024', 'Conversor'],
             icons=['house-fill', ],
             menu_icon='star-fill',
             default_index=0,
