@@ -101,8 +101,7 @@ def app():
 
         df['Teacher'] = df['Student'].apply(lambda x: 1 if x < 21 else x//20)
         
-       
-
+    
         st.dataframe(df)
     
         
