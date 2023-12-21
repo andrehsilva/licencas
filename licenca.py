@@ -13,11 +13,11 @@ year = date.today().strftime('%Y')
 
 def app():
     st.subheader('Script de cadastro de licenças!')
-    agree = st.checkbox('Comparar licenças já cadastrada?')
-    if agree:
-        cadastradas = st.file_uploader("Para selecionar apenas as licenças que ainda não foram importadas, importe o último relatório gerado!", type=["XLSX"])
-        if cadastradas is not None:
-            df_before = pd.read_excel(cadastradas)
+    #agree = st.checkbox('Comparar licenças já cadastrada?')
+    #if agree:
+        #cadastradas = st.file_uploader("Para selecionar apenas as licenças que ainda não foram importadas, importe o último relatório gerado!", type=["XLSX"])
+        #if cadastradas is not None:
+            #df_before = pd.read_excel(cadastradas)
    
         
 
