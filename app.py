@@ -7,7 +7,7 @@ from datetime import datetime, date
 import re
 
 
-import licenca, converter, produto
+import licenca, converter, produto, dados_do_banco
 
 
 st.set_page_config(
@@ -62,7 +62,7 @@ if check_password():
     with st.sidebar:        
         app = option_menu(
             menu_title='',
-            options=['Licença 2024','Produto e suas escolas' ,'Conversor'],
+            options=['Licença 2024','Produto e suas escolas' ,'Conversor', 'Download do banco' ],
             icons=['house-fill', ],
             #menu_icon='star-fill',
             default_index=0,
@@ -79,6 +79,8 @@ if check_password():
         converter.app()
     if app == "Produto e suas escolas":
         produto.app()
+    if app == "Download do banco":
+        dados_do_banco.app()
 
   
    

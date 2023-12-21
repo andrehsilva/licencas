@@ -15,13 +15,7 @@ year = date.today().strftime('%Y')
 
 def app():
     st.subheader('Script de cadastro de licenças!')
-    #agree = st.checkbox('Comparar licenças já cadastrada?')
-    #if agree:
-        #cadastradas = st.file_uploader("Para selecionar apenas as licenças que ainda não foram importadas, importe o último relatório gerado!", type=["XLSX"])
-        #if cadastradas is not None:
-            #df_before = pd.read_excel(cadastradas)
-   
-        
+
 
 
     file = st.file_uploader("Importe o relatório de itens em formato xlsx", type=["XLSX"])
@@ -142,21 +136,21 @@ def app():
         # Conectar ao banco de dados SQLite (isso cria o banco de dados se não existir)
         path_db = 'database.db'
 
+        df_full = []
         # Carrega o DataFrame existente do banco de dados, se existir
         if Path(path_db).is_file():
             conn = sqlite3.connect(path_db)
             consulta_sql = 'SELECT * FROM licencas'
             df_db = pd.read_sql_query(consulta_sql, conn)
+            df_concat.to_sql('licencas', conn, index=False, if_exists='append')
+            conn.close()
 
             # Remove duplicatas do DataFrame carregado do banco de dados
             df_db_clean = df_db.drop_duplicates()
             df_full = df_db_clean.copy()
-
-            conn.close()
-            st.dataframe(df_db_clean)
             df_to_save = df_concat.merge(df_db_clean, how='outer', indicator=True)
             df_to_save = df_to_save[df_to_save['_merge'] != 'both']
-            df_to_save.to_excel('output/df_to_save.xlsx')
+ 
         else:
             # Se o banco de dados não existir, cria um DataFrame vazio
             conn = sqlite3.connect(path_db)
@@ -172,59 +166,29 @@ def app():
         st.divider()
         with st.spinner('Aguarde...'):
             time.sleep(3)
-        st.success('Concluído com sucesso!', icon="✅")
-        #def convert_df(df):
-            # IMPORTANT: Cache the conversion to prevent computation on every rerun
-           # return df.to_csv(index=False).encode('UTF-8')
 
+        if df_to_save.empty:
+            st.info('Não há itens a cadastrar, faça o upload de uma nova planilha', icon="😒")
+        else:
+            st.success('Concluído com sucesso!', icon="😀")
 
+            col1, col2= st.columns(2)
+            with col1:
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    df_to_save.to_excel(writer, index=False)
+                    # Configurar os parâmetros para o botão de download
+                st.download_button(
+                        label="Download",
+                    data=output.getvalue(),
+                    file_name=f'{today}import.xlsx',
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 
-
-        col1, col2= st.columns(2)
-        with col1:
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                df_to_save.to_excel(writer, index=False)
-                # Configurar os parâmetros para o botão de download
-            st.download_button(
-                    label="Download",
-                data=output.getvalue(),
-                file_name=f'{today}full.xlsx',
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-
-        with col2:
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                df_full.to_excel(writer, index=False)
-                # Configurar os parâmetros para o botão de download
-            st.download_button(
-                    label="Download do banco de dados",
-                data=output.getvalue(),
-                file_name=f'{today}full.xlsx',
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-
-     
 
         
 
-        ###### DEBUG COM FILTRO
-        st.divider()
-        st.write('Resultado:')
 
-        filter = df_to_save[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
-
-        # Adicione um filtro para a grade
-        selected_school = st.selectbox('Selecione a escola:', ['', *filter['SchoolName'].unique()])
-
-        if  selected_school:
-            filtered_data = filter[filter['SchoolName'] == selected_school]
-        else:
-            filtered_data = filter
-
-        st.dataframe(filtered_data)
-        ##################
-
+     
 
 
