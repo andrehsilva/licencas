@@ -94,6 +94,27 @@ def app():
         if selected:
             selected_school = filter[filter['SCHOOL_NAME'] == selected]
             st.dataframe(selected_school)
+
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                selected_school.to_excel(writer, index=False)
+                # Configurar os parâmetros para o botão de download
+            st.download_button(
+                    label="Download da seleção",
+                data=output.getvalue(),
+                file_name=f'{selected}{produto}.xlsx',
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
         else:
             st.dataframe(filter)
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                filter.to_excel(writer, index=False)
+                # Configurar os parâmetros para o botão de download
+            st.download_button(
+                    label="Download",
+                data=output.getvalue(),
+                file_name=f'Escolas_{produto}.xlsx',
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
         ##################

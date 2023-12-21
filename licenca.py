@@ -3,10 +3,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, date
 import re
-from datetime import date
 import time
 import io
-from streamlit_modal import Modal
+
 
 today = date.today().strftime('%d-%m-%Y')
 year = date.today().strftime('%Y')
@@ -32,23 +31,14 @@ def app():
         #st.dataframe(df)
 
         #### IMPORTS DE BASES ##############
-        combos = pd.read_excel('input/combos.xlsx', sheet_name='COMBOS')
-        combos = combos[['MARCA',2024,'DESCRIÇÃO MAGENTO (B2C e B2B)','PRODUTO','CÓDIGO DO COMBO','SÉRIE DA LEX - REGULAR','SÉRIE DA LEX - BILINGUE','SÉRIE DA LEX - BILINGUE PREMIUM']]
-        #combos = combos.rename(columns={2024:'SKU',})
+        combos = pd.read_excel('input/combos.xlsx')
+        combos = combos[['MARCA','SKU','DESCRIÇÃO MAGENTO (B2C e B2B)','PRODUTO','CÓDIGO DO COMBO','TAG REGULAR','TAG BILINGUE','TAG PREMIUM','SÉRIE']]
         combos = combos[~combos['PRODUTO'].str.contains('NÃO SE APLICA')]
-
-        tag_year = pd.read_excel('input/base.xlsx', sheet_name='tag_year')
-  
+        #st.dataframe(combos)
+        escolas_premium = pd.read_excel('input/base.xlsx', sheet_name='tag_year')
+        #st.dataframe(escolas_premium)
         escolas = pd.read_excel('input/base.xlsx', sheet_name='escolas')
-        #st.dataframe(df_escolas)
-    
-        #seg = pd.read_excel('input/base.xlsx', sheet_name='segmentos')
-        #st.dataframe(seg)
-        #grade_bilingue = pd.read_excel('input/base.xlsx', sheet_name='grade_bilingue')
-        #st.dataframe(grade_bilingue)
-        #grade_itinerario = pd.read_excel('input/base.xlsx', sheet_name='grade_itinerario')
-        #st.dataframe(grade_itinerario)
-        ############END IMPORT######################
+        #st.dataframe(escolas)
     
         df_relatorio = df.copy()
         df_relatorio = df_relatorio.loc[~(df_relatorio['CLIENTE'] == 'B2C')]
@@ -75,20 +65,22 @@ def app():
         df_relatorio['Ean do produto'] = df_relatorio['Ean do produto'].astype('int64')
         df_relatorio['Data do pedido'] = df_relatorio['Data do pedido'].astype('datetime64[ns]')
         df_relatorio['Data do pedido'] = df_relatorio['Data do pedido'].dt.strftime('%d/%m/%Y')
-        df_relatorio = df_relatorio[df_relatorio['Status do pedido'].isin(['Processando','Aprovado','Parcialmente Entregue','Entregue','Faturado','Parcialmente Faturado','Enviado'])] #Faturado
+        df_relatorio = df_relatorio[df_relatorio['Status do pedido'].isin(['Processando','Aprovado','Parcialmente Entregue','Entregue','Faturado','Parcialmente Faturado','Enviado'])] #Faturado #Boleto Emitido #Estornado #Cancelado
         df_relatorio = df_relatorio.loc[df_relatorio['Data do pedido'] > '2023-10-01 00:00:00']
         df_relatorio = df_relatorio.drop_duplicates()
         df_relatorio['CNPJ'] = df_relatorio['CNPJ'].astype('int64')
         #st.dataframe(df_relatorio)
         #st.stop()
 
-        df_escolas = escolas
+        df_escolas = escolas.copy()
         df_escolas = df_escolas.drop(columns=['TenantName','CorporationName'])
         df_escolas = df_escolas.drop_duplicates()
         df_escolas = df_escolas[['SchoolCNPJ','TenantId','SchoolId','SchoolName']]
         df_escolas = df_escolas.dropna()
         df_escolas = df_escolas.rename(columns={'SchoolCNPJ':'CNPJ'})
         df_escolas = df_escolas[~df_escolas['SchoolName'].str.contains('Concurso de Bolsa')]
+        #st.dataframe(df_escolas)
+
         #Regex ajuste de cnpj
         #p = re.compile(r'[../-]')
         #df_escolas['CNPJ'] = [p.sub('', x) for x in df_escolas['CNPJ']]
@@ -96,36 +88,39 @@ def app():
         
     
         df_combos = combos.copy()
-        df_combos = df_combos.rename(columns={2024:'Ean do produto','CÓDIGO DO COMBO':'ComboCode','DESCRIÇÃO MAGENTO (B2C e B2B)':'LicenseName','Data do pedido':'OrderDate'})
-       
+        df_combos = df_combos.rename(columns={'SKU':'Ean do produto','CÓDIGO DO COMBO':'ComboCode','DESCRIÇÃO MAGENTO (B2C e B2B)':'LicenseName','Data do pedido':'OrderDate'})
     
         df_relatorio_combos = pd.merge(df_relatorio, df_combos, on=['Ean do produto'], how='inner')
         df_relatorio_combos = df_relatorio_combos.rename(columns={'LicenseName_x':'LicenseName'})
         df_relatorio_combos = df_relatorio_combos.drop_duplicates()
         df_relatorio_combos = df_relatorio_combos.rename(columns={'SÉRIE':'Grade'})
-       
+        #st.dataframe(df_relatorio_combos)
+
         df_relatorio_combos_escolas = pd.merge(df_relatorio_combos, df_escolas,  on=['CNPJ'], how='left')
         df_relatorio_combos_escolas = df_relatorio_combos_escolas.drop_duplicates()
-        
+        #st.dataframe(df_relatorio_combos_escolas)
         df = df_relatorio_combos_escolas.copy()
 
         df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1')
         df = df.rename(columns={'SchoolId':'School','TenantId':'Tenant', 'N pedido':'OrderNumber', 'Quantidade do produto':'Student', 'SÉRIE_x':'Grade','Data do pedido':'OrderDate', 'NOME DA LICENÇA':'LicenseName' })
         df = df.drop(columns=['Sku do produto'])
         #st.dataframe(df)
-        df.to_excel('output/df.xlsx')
+        #df.to_excel('output/df.xlsx')
 
-        df_bilingue = df.loc[df['Nome do produto'].str.contains('HIGH FIVE')]
+        
         
         ###BILINGUE###############################
         ##########################################
-        df_bilingue = df_bilingue[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','SÉRIE DA LEX - BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
-        df_bilingue = df_bilingue.rename(columns={'SÉRIE DA LEX - BILINGUE':'Grade'})
+        df_bilingue = df.loc[df['Nome do produto'].str.contains('HIGH FIVE')]
+        #st.dataframe(df_bilingue)
+        df_bilingue = df_bilingue[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
+        df_bilingue = df_bilingue.rename(columns={'TAG BILINGUE':'Grade'})
         df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
         df_bilingue = df_bilingue.sort_values('Student', ascending=False)
         df_bilingue['Student'] = 1
+        #st.dataframe(df_bilingue)
         
-        ###BILINGUE###############################
+        ###END BILINGUE###########################
         ##########################################
 
 
@@ -135,7 +130,8 @@ def app():
 
         df['Teacher'] = df['Student'].apply(lambda x: 1 if x < 21 else x//20)
      
-    
+        ### CONCAT ###############################
+        ##########################################
         df_full = pd.concat([df_bilingue,df])
         df_full = df_full.sort_values(['School','ComboCode'])
     
@@ -174,27 +170,18 @@ def app():
 
         @st.cache_data
         def load_data():
-            filter = df_full[['Tenant','School','ComboCode','Grade','OrderNumber','Student','Teacher','SchoolName','CNPJ']]
+            filter = df_full[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
             return filter
         
         data = load_data()
 
-        col1, col2= st.columns(2)
+       
         
         # Adicione um filtro para a grade
-        with col1:
-            selected_school = st.selectbox('Selecione a escola:', ['', *data['SchoolName'].unique()])
+        
+        selected_school = st.selectbox('Selecione a escola:', ['', *data['SchoolName'].unique()])
 
-        # Adicione um filtro para a escola
-        with col2:
-            selected_combo = st.selectbox('Selecione o combo:', ['', *data['ComboCode'].unique()])
-            
-
-        if selected_combo and selected_school:
-            filtered_data = data[(data['ComboCode'] == selected_combo) & (data['SchoolName'] == selected_school)]
-        elif selected_combo:
-            filtered_data = data[data['ComboCode'] == selected_combo]
-        elif selected_school:
+        if  selected_school:
             filtered_data = data[data['SchoolName'] == selected_school]
         else:
             filtered_data = data

@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, date
 import re
+! streamlit-option-menu
 
 import licenca, converter, produto
 
