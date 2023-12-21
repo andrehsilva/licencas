@@ -1,3 +1,4 @@
+! streamlit-option-menu
 import streamlit as st
 from streamlit_option_menu import option_menu
 import io
@@ -5,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, date
 import re
-! streamlit-option-menu
+
 
 import licenca, converter, produto
 
