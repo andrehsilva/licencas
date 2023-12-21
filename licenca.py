@@ -5,6 +5,8 @@ from datetime import datetime, date
 import re
 import time
 import io
+import sqlite3
+from pathlib import Path
 
 
 today = date.today().strftime('%d-%m-%Y')
@@ -67,7 +69,7 @@ def app():
         df_relatorio['Data do pedido'] = df_relatorio['Data do pedido'].dt.strftime('%d/%m/%Y')
         df_relatorio = df_relatorio[df_relatorio['Status do pedido'].isin(['Processando','Aprovado','Parcialmente Entregue','Entregue','Faturado','Parcialmente Faturado','Enviado'])] #Faturado #Boleto Emitido #Estornado #Cancelado
         df_relatorio = df_relatorio.loc[df_relatorio['Data do pedido'] > '2023-10-01 00:00:00']
-        #df_relatorio = df_relatorio.drop_duplicates()
+        df_relatorio = df_relatorio.drop_duplicates()
         df_relatorio['CNPJ'] = df_relatorio['CNPJ'].astype('int64')
         #st.dataframe(df_relatorio)
         #df_relatorio.to_excel('output/df_relatorio.xlsx')
@@ -81,15 +83,9 @@ def app():
         df_escolas = df_escolas.rename(columns={'SchoolCNPJ':'CNPJ'})
         df_escolas = df_escolas[~df_escolas['SchoolName'].str.contains('Concurso de Bolsa')]
         #st.dataframe(df_escolas)
-
-        #Regex ajuste de cnpj
-        #p = re.compile(r'[../-]')
-        #df_escolas['CNPJ'] = [p.sub('', x) for x in df_escolas['CNPJ']]
-        #df_escolas['CNPJ'] = df_escolas['CNPJ'].astype('int64')
-        
     
         df_combos = combos.copy()
-        df_combos = df_combos.rename(columns={'SKU':'Ean do produto','CÓDIGO DO COMBO':'ComboCode','DESCRIÇÃO MAGENTO (B2C e B2B)':'LicenseName','Data do pedido':'OrderDate'})
+        df_combos = df_combos.rename(columns={'SKU':'Ean do produto','CÓDIGO DO COMBO':'ComboCode','PRODUTO':'LicenseName','Data do pedido':'OrderDate'})
     
         df_relatorio_combos = pd.merge(df_relatorio, df_combos, on=['Ean do produto'], how='inner')
         df_relatorio_combos = df_relatorio_combos.rename(columns={'LicenseName_x':'LicenseName'})
@@ -101,12 +97,14 @@ def app():
         df_relatorio_combos_escolas = pd.merge(df_relatorio_combos, df_escolas,  on=['CNPJ'], how='left')
         df_relatorio_combos_escolas = df_relatorio_combos_escolas.drop_duplicates()
         #st.dataframe(df_relatorio_combos_escolas)
-        df_relatorio_combos_escolas.to_excel('output/df_relatorio_combos_escolas.xlsx')
+        #df_relatorio_combos_escolas.to_excel('output/df_relatorio_combos_escolas.xlsx')
+        
         df = df_relatorio_combos_escolas.copy()
-
+        
         df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1')
-        df = df.rename(columns={'SchoolId':'School','TenantId':'Tenant', 'N pedido':'OrderNumber', 'Quantidade do produto':'Student', 'SÉRIE_x':'Grade','Data do pedido':'OrderDate', 'NOME DA LICENÇA':'LicenseName' })
         df = df.drop(columns=['Sku do produto'])
+        df = df.rename(columns={'SchoolId':'School','TenantId':'Tenant', 'N pedido':'OrderNumber', 'Quantidade do produto':'Student', 'SÉRIE_x':'Grade','Data do pedido':'OrderDate', 'PRODUTO':'LicenseName' })
+        
         #st.dataframe(df)
         #df.to_excel('output/df.xlsx')
 
@@ -135,13 +133,41 @@ def app():
      
         ### CONCAT ###############################
         ##########################################
-        df_full = pd.concat([df_bilingue,df])
-        df_full = df_full.sort_values(['School','ComboCode'])
-        df_full.to_excel('output/df_full.xlsx')
-    
-        #st.dataframe(df_full)
+        df_concat = pd.concat([df_bilingue,df])
+        df_concat = df_concat.sort_values(['School','ComboCode'])
+        #df_concat.to_excel('output/df_concat.xlsx')
+        #st.dataframe(df_concat)
+
+        ##### Banco ###############################
+        # Conectar ao banco de dados SQLite (isso cria o banco de dados se não existir)
+        path_db = 'database.db'
+
+        # Carrega o DataFrame existente do banco de dados, se existir
+        if Path(path_db).is_file():
+            conn = sqlite3.connect(path_db)
+            consulta_sql = 'SELECT * FROM licencas'
+            df_db = pd.read_sql_query(consulta_sql, conn)
+
+            # Remove duplicatas do DataFrame carregado do banco de dados
+            df_db_clean = df_db.drop_duplicates()
+
+            conn.close()
+            st.dataframe(df_db_clean)
+            df_to_save = df_concat.merge(df_db_clean, how='outer', indicator=True)
+            df_to_save = df_to_save[df_to_save['_merge'] != 'both']
+            df_to_save.to_excel('output/df_to_save.xlsx')
+        else:
+            # Se o banco de dados não existir, cria um DataFrame vazio
+            conn = sqlite3.connect(path_db)
+            df_concat.to_sql('licencas', conn, index=False, if_exists='replace')
+            conn.close()
+            df_to_save = df_concat.copy()
+        
+
+        ##### End Banco ###############################
 
 
+        
         st.divider()
         with st.spinner('Aguarde...'):
             time.sleep(3)
@@ -151,11 +177,13 @@ def app():
            # return df.to_csv(index=False).encode('UTF-8')
 
 
+
+
         col1, col2= st.columns(2)
         with col1:
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                df_full.to_excel(writer, index=False)
+                df_to_save.to_excel(writer, index=False)
                 # Configurar os parâmetros para o botão de download
             st.download_button(
                     label="Download",
@@ -172,10 +200,9 @@ def app():
         st.divider()
         st.write('Resultado:')
 
-        filter = df_full[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
+        filter = df_to_save[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
 
         # Adicione um filtro para a grade
-        
         selected_school = st.selectbox('Selecione a escola:', ['', *filter['SchoolName'].unique()])
 
         if  selected_school:
@@ -188,7 +215,3 @@ def app():
 
 
 
-
-
-    
-        #df_full.to_excel('output/df_relatorio.xlsx')
