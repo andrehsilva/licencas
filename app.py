@@ -6,7 +6,7 @@ import numpy as np
 from datetime import datetime, date
 import re
 
-import licenca, converter
+import licenca, converter, produto
 
 
 st.set_page_config(
@@ -60,10 +60,10 @@ if check_password():
 
     with st.sidebar:        
         app = option_menu(
-            menu_title='SQUAD',
-            options=['Licença 2024', 'Conversor'],
+            menu_title='',
+            options=['Licença 2024','Produto e suas escolas' ,'Conversor'],
             icons=['house-fill', ],
-            menu_icon='star-fill',
+            #menu_icon='star-fill',
             default_index=0,
             styles={
                 "container": {"padding": "5!important"},
@@ -76,5 +76,8 @@ if check_password():
         licenca.app()
     if app == "Conversor":
         converter.app()
+    if app == "Produto e suas escolas":
+        produto.app()
+
   
    
