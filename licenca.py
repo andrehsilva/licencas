@@ -41,7 +41,7 @@ def app():
         #st.dataframe(escolas)
     
         df_relatorio = df.copy()
-        df_relatorio = df_relatorio.loc[~(df_relatorio['CLIENTE'] == 'B2C')]
+        #df_relatorio = df_relatorio.loc[~(df_relatorio['CLIENTE'] == 'B2C')]
         df_relatorio = df_relatorio.loc[df_relatorio['Tipo pessoa'] == 'Pessoa jurídica']
         df_relatorio = df_relatorio.drop(columns=['Nome da loja', 'N pedido pai','Rua (endereco de cadastro)','Status da integração',
                                               'Nome Sobrenome/razao social nome fantasia','CPF','ID Usuário LEX','Rua (endereco de cadastro)',
@@ -59,7 +59,7 @@ def app():
         solucao = df_relatorio[df_relatorio['Ean do produto'].isnull()]
         df_relatorio = df_relatorio.loc[~(df_relatorio['Ean do produto'].isnull())] 
         #df_relatorio['ANO PRODUTO'] = df_relatorio['ANO PRODUTO'].astype('int64')
-        df_relatorio = df_relatorio.loc[df['ANO PRODUTO'] == 2024]
+        #df_relatorio = df_relatorio.loc[df['ANO PRODUTO'] == 2024]
         df_relatorio['CNPJ'] = pd.to_numeric(df_relatorio['CNPJ'], downcast='integer')
         df_relatorio['Ean do produto'] = pd.to_numeric(df_relatorio['Ean do produto'], downcast='integer')
         df_relatorio['Ean do produto'] = df_relatorio['Ean do produto'].astype('int64')
@@ -67,9 +67,10 @@ def app():
         df_relatorio['Data do pedido'] = df_relatorio['Data do pedido'].dt.strftime('%d/%m/%Y')
         df_relatorio = df_relatorio[df_relatorio['Status do pedido'].isin(['Processando','Aprovado','Parcialmente Entregue','Entregue','Faturado','Parcialmente Faturado','Enviado'])] #Faturado #Boleto Emitido #Estornado #Cancelado
         df_relatorio = df_relatorio.loc[df_relatorio['Data do pedido'] > '2023-10-01 00:00:00']
-        df_relatorio = df_relatorio.drop_duplicates()
+        #df_relatorio = df_relatorio.drop_duplicates()
         df_relatorio['CNPJ'] = df_relatorio['CNPJ'].astype('int64')
-        #st.dataframe(df_relatorio)
+        st.dataframe(df_relatorio)
+        #df_relatorio.to_excel('output/df_relatorio.xlsx')
         #st.stop()
 
         df_escolas = escolas.copy()
@@ -94,11 +95,13 @@ def app():
         df_relatorio_combos = df_relatorio_combos.rename(columns={'LicenseName_x':'LicenseName'})
         df_relatorio_combos = df_relatorio_combos.drop_duplicates()
         df_relatorio_combos = df_relatorio_combos.rename(columns={'SÉRIE':'Grade'})
+        #df_relatorio_combos.to_excel('output/df_relatorio_combos.xlsx')
         #st.dataframe(df_relatorio_combos)
 
         df_relatorio_combos_escolas = pd.merge(df_relatorio_combos, df_escolas,  on=['CNPJ'], how='left')
         df_relatorio_combos_escolas = df_relatorio_combos_escolas.drop_duplicates()
         #st.dataframe(df_relatorio_combos_escolas)
+        df_relatorio_combos_escolas.to_excel('output/df_relatorio_combos_escolas.xlsx')
         df = df_relatorio_combos_escolas.copy()
 
         df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1')
@@ -134,6 +137,7 @@ def app():
         ##########################################
         df_full = pd.concat([df_bilingue,df])
         df_full = df_full.sort_values(['School','ComboCode'])
+        df_full.to_excel('output/df_full.xlsx')
     
         #st.dataframe(df_full)
 
@@ -168,23 +172,16 @@ def app():
         st.divider()
         st.write('Resultado:')
 
-        @st.cache_data
-        def load_data():
-            filter = df_full[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
-            return filter
-        
-        data = load_data()
+        filter = df_full[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
 
-       
-        
         # Adicione um filtro para a grade
         
-        selected_school = st.selectbox('Selecione a escola:', ['', *data['SchoolName'].unique()])
+        selected_school = st.selectbox('Selecione a escola:', ['', *filter['SchoolName'].unique()])
 
         if  selected_school:
-            filtered_data = data[data['SchoolName'] == selected_school]
+            filtered_data = filter[filter['SchoolName'] == selected_school]
         else:
-            filtered_data = data
+            filtered_data = filter
 
         st.dataframe(filtered_data)
         ##################
