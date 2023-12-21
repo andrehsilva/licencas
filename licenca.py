@@ -150,6 +150,7 @@ def app():
 
             # Remove duplicatas do DataFrame carregado do banco de dados
             df_db_clean = df_db.drop_duplicates()
+            df_full = df_db_clean.copy()
 
             conn.close()
             st.dataframe(df_db_clean)
@@ -187,6 +188,18 @@ def app():
                 # Configurar os parâmetros para o botão de download
             st.download_button(
                     label="Download",
+                data=output.getvalue(),
+                file_name=f'{today}full.xlsx',
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+        with col2:
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df_full.to_excel(writer, index=False)
+                # Configurar os parâmetros para o botão de download
+            st.download_button(
+                    label="Download do banco de dados",
                 data=output.getvalue(),
                 file_name=f'{today}full.xlsx',
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
