@@ -69,7 +69,7 @@ def app():
         df_relatorio = df_relatorio.loc[df_relatorio['Data do pedido'] > '2023-10-01 00:00:00']
         #df_relatorio = df_relatorio.drop_duplicates()
         df_relatorio['CNPJ'] = df_relatorio['CNPJ'].astype('int64')
-        st.dataframe(df_relatorio)
+        #st.dataframe(df_relatorio)
         #df_relatorio.to_excel('output/df_relatorio.xlsx')
         #st.stop()
 
