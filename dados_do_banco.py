@@ -9,9 +9,27 @@ import sqlite3
 from pathlib import Path
 
 def app():
-    
 
     path_db = 'database.db'
+
+    file = st.file_uploader("Salvar no banco de dados uma planilha manual", type=["XLSX"])
+    data_atual = date.today().strftime('%d-%m-%Y')
+
+    if file is not None:
+        df = pd.read_excel(file)
+        #st.dataframe(df
+        conn = sqlite3.connect(path_db)
+        df.to_sql('licencas', conn, index=False, if_exists='append')
+        conn.close()
+        
+    
+    with st.spinner('Aguarde...'):
+        time.sleep(2)
+
+
+    st.divider()
+
+    
     if Path(path_db).is_file():
         st.subheader('Baixar dados!')
         conn = sqlite3.connect(path_db)
@@ -31,5 +49,13 @@ def app():
                 file_name=f'db.xlsx',
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+    
+        
+        
+
+
     else:
         st.info('Não há dados disponíveis', icon="😒")
+
+
+    

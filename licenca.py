@@ -20,6 +20,7 @@ def app():
 
     file = st.file_uploader("Importe o relatório de itens em formato .xlsx", type=["XLSX"])
     data_atual = date.today().strftime('%d-%m-%Y')
+    data_2 = date.today().strftime('%d/%m/%Y')
     print(data_atual)
     
 
@@ -96,7 +97,7 @@ def app():
         
         df = df_relatorio_combos_escolas.copy()
         
-        df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1')
+        df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1',date = data_2, type = 'script')
         df = df.drop(columns=['Sku do produto'])
         df = df.rename(columns={'SchoolId':'School','TenantId':'Tenant', 'N pedido':'OrderNumber', 'Quantidade do produto':'Student', 'TAG REGULAR':'Grade','Data do pedido':'OrderDate', 'PRODUTO':'LicenseName' })
         
@@ -109,7 +110,7 @@ def app():
         ##########################################
         df_bilingue = df.loc[df['Nome do produto'].str.contains('HIGH FIVE')]
         #st.dataframe(df_bilingue)
-        df_bilingue = df_bilingue[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
+        df_bilingue = df_bilingue[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
         df_bilingue = df_bilingue.rename(columns={'TAG BILINGUE':'Grade'})
         df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
         df_bilingue = df_bilingue.sort_values('Student', ascending=False)
@@ -120,7 +121,7 @@ def app():
         ##########################################
 
 
-        df = df[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
+        df = df[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
         df[['OrderNumber','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df[['OrderNumber','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
         df = df.sort_values('Student', ascending=False)
 
@@ -131,7 +132,7 @@ def app():
         df_concat = pd.concat([df_bilingue,df])
         df_concat = df_concat.sort_values(['School','ComboCode'])
         #df_concat.to_excel('output/df_concat.xlsx')
-        st.dataframe(df_concat)
+        #st.dataframe(df_concat)
 
         ##### Banco ###############################
         path_db = 'database.db'
@@ -151,6 +152,7 @@ def app():
             #st.dataframe(df_to_save)
             df_to_save = df_to_save[df_to_save['_merge'] != 'both']
             df_to_save = df_to_save.loc[~df_to_save['_merge'].str.contains('both|right')]
+            
  
         else:
             # Se o banco de dados não existir, cria um DataFrame vazio
@@ -171,6 +173,7 @@ def app():
 
         if df_to_save.empty:
             st.info('Não há itens a cadastrar, faça o upload de uma nova planilha', icon="😒")
+            
         else:
             st.success('Concluído com sucesso!', icon="😀")
 
@@ -184,10 +187,10 @@ def app():
                         label="Download",
                     data=output.getvalue(),
                     file_name=f'{today}import.xlsx',
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    
-                    
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",               
                 )
+        
+
 
        
 
