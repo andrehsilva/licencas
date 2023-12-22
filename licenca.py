@@ -14,11 +14,11 @@ year = date.today().strftime('%Y')
 
 
 def app():
-    st.subheader('Script de cadastro de licenças!')
+    st.subheader('Gerador de planilha de importação de licenças Lex!')
 
 
 
-    file = st.file_uploader("Importe o relatório de itens em formato xlsx", type=["XLSX"])
+    file = st.file_uploader("Importe o relatório de itens em formato .xlsx", type=["XLSX"])
     data_atual = date.today().strftime('%d-%m-%Y')
     print(data_atual)
     

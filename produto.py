@@ -15,7 +15,7 @@ year = date.today().strftime('%Y')
 
 
 def app():
-    st.subheader('Consulte as escolas de cada produto.')
+    st.subheader('Relação de escolas para cada produto.')
 
     file = st.file_uploader("Selecione o relatório de itens em formato xlsx", type=["XLSX"])
 
