@@ -28,8 +28,7 @@ def app():
         escolas = pd.read_excel('input/escolas_lex.xlsx')
 
         #Regex ajuste de cnpj
-        p = re.compile(r'[../-]')
-        escolas['CNPJ'] = [p.sub('', x) for x in escolas['CNPJ']]
+        
         escolas['CNPJ'] = escolas['CNPJ'].astype('int64')
         #st.dataframe(df)
         df = df[['Data do pedido','Status do pedido','Nome do produto','Grupo de cliente','Quantidade do produto']]
@@ -40,12 +39,12 @@ def app():
         df = pd.merge(df, escolas, on='Grupo de cliente', how='inner')
        
         df['PRODUTO'] = produto
-        df = df.rename(columns={'Nome do produto':'NOME PRODUTO','Quantidade do produto':'QUANTIDADE LICENÇAS'})
-        df = df[['PRODUTO','NOME PRODUTO','QUANTIDADE LICENÇAS','CNPJ','TENANT_ID','TENANT_NAME','SCHOOL_ID','SCHOOL_NAME']]
+        df = df.rename(columns={'PRODUTO':'Produto','Nome do produto':'Nome do produto','Quantidade do produto':'Quantidade de Licenças'})
+        df = df[['Produto','Nome do produto','Quantidade de Licenças','CNPJ','TenantId','TenantName','SchoolId','SchoolName']]
         df = df.drop_duplicates()
 
         df_escolas = df.copy()
-        df_escolas = df_escolas[['PRODUTO','CNPJ','TENANT_ID','TENANT_NAME','SCHOOL_ID','SCHOOL_NAME']]
+        df_escolas = df_escolas[['Produto','CNPJ','TenantId','TenantName','SchoolId','SchoolName']]
         df_escolas = df_escolas.drop_duplicates()
 
 
@@ -89,10 +88,10 @@ def app():
         ###### DEBUG COM FILTRO
         st.divider()
         st.write('Resultado:')
-        filter = df[['PRODUTO','NOME PRODUTO','QUANTIDADE LICENÇAS','CNPJ','TENANT_ID','TENANT_NAME','SCHOOL_ID','SCHOOL_NAME']]
-        selected = st.selectbox('Selecione a escola:', ['',*filter['SCHOOL_NAME'].unique()])
+        filter = df[['Produto','Nome do produto','Quantidade de Licenças','CNPJ','TenantId','TenantName','SchoolId','SchoolName']]
+        selected = st.selectbox('Selecione a escola:', ['',*filter['SchoolName'].unique()])
         if selected:
-            selected_school = filter[filter['SCHOOL_NAME'] == selected]
+            selected_school = filter[filter['SchoolName'] == selected]
             st.dataframe(selected_school)
 
             output = io.BytesIO()
