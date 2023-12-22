@@ -35,7 +35,7 @@ def app():
         #st.dataframe(combos)
         escolas_premium = pd.read_excel('input/base.xlsx', sheet_name='tag_year')
         #st.dataframe(escolas_premium)
-        escolas = pd.read_excel('input/base.xlsx', sheet_name='escolas')
+        escolas = pd.read_excel('input/escolas_lex.xlsx')
         #st.dataframe(escolas)
     
         df_relatorio = df.copy()
@@ -72,11 +72,12 @@ def app():
         #st.stop()
 
         df_escolas = escolas.copy()
-        df_escolas = df_escolas.drop(columns=['TenantName','CorporationName'])
+        df_escolas = df_escolas.drop(columns=['TenantName'])
         df_escolas = df_escolas.drop_duplicates()
-        df_escolas = df_escolas[['SchoolCNPJ','TenantId','SchoolId','SchoolName']]
+        
+        df_escolas['CNPJ'] = df_escolas['CNPJ'].astype('int64')
+        df_escolas = df_escolas[['CNPJ','TenantId','SchoolId','SchoolName']]
         df_escolas = df_escolas.dropna()
-        df_escolas = df_escolas.rename(columns={'SchoolCNPJ':'CNPJ'})
         df_escolas = df_escolas[~df_escolas['SchoolName'].str.contains('Concurso de Bolsa')]
         #st.dataframe(df_escolas)
     
