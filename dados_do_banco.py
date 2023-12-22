@@ -10,6 +10,9 @@ from pathlib import Path
 
 def app():
 
+    today = date.today().strftime('%d-%m-%Y')
+    year = date.today().strftime('%Y')
+
     path_db = 'database.db'
 
     file = st.file_uploader("Salvar no banco de dados uma planilha manual", type=["XLSX"])
@@ -46,9 +49,24 @@ def app():
             st.download_button(
                     label="Download do banco de dados",
                 data=output.getvalue(),
-                file_name=f'db.xlsx',
+                file_name=f'{today}-db.xlsx',
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+        st.divider()
+
+        df_error = dado.query('School.isna()')
+        if df_error.__len__():
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df_error.to_excel(writer, index=False)
+     
+            st.download_button(
+                label="Download de erros",
+                data=output.getvalue(),
+                file_name=f'{today}{today}-erros.xlsx',
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",               
+            )
+            st.dataframe(df_error)
     
         
         

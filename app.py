@@ -69,8 +69,8 @@ if check_password():
             styles={
                 "container": {"padding": "5!important"},
                 "icon": { "font-size": "16px"}, 
-                "nav-link": {"font-size": "16px", "text-align": "left", "margin":"0px", "--hover-color": "#F7EFE5"},
-                "nav-link-selected": {"background-color": "blue"},}
+                "nav-link": {"font-size": "16px", "text-align": "left", "margin":"0px", "--hover-color": "rgba(0, 0, 255, 0.1)"},
+                "nav-link-selected": {"background-color": "#208AC0"},}
             )
             
     if app == "Licença 2024":

@@ -16,8 +16,6 @@ year = date.today().strftime('%Y')
 def app():
     st.subheader('Gerador de planilha de importação de licenças Lex!')
 
-
-
     file = st.file_uploader("Importe o relatório de itens em formato .xlsx", type=["XLSX"])
     data_atual = date.today().strftime('%d-%m-%Y')
     data_2 = date.today().strftime('%d/%m/%Y')
@@ -26,6 +24,7 @@ def app():
 
     if file is not None:
         df = pd.read_excel(file)
+        #file = None
         #st.dataframe(df)
 
         #### IMPORTS DE BASES ##############
@@ -153,20 +152,35 @@ def app():
             #st.dataframe(df_to_save)
             df_to_save = df_to_save[df_to_save['_merge'] != 'both']
             df_to_save = df_to_save.loc[~df_to_save['_merge'].str.contains('both|right')]
+            #df_to_save = df_to_save.query('School.notna()')
+
+      
             
  
         else:
-            # Se o banco de dados não existir, cria um DataFrame vazio
+            # Se o banco de dados não existir, cria um DataFrame vazio,,,
             conn = sqlite3.connect(path_db)
             df_concat.to_sql('licencas', conn, index=False, if_exists='append')
             conn.close()
             df_to_save = df_concat.copy()
+            #df_to_save = df_to_save.query('School.notna()')
             #st.dataframe(df_to_save)
-        
+
+        #df_error = df_to_save.query('School.isna()')
+        #if df_error.__len__():
+        #    output = io.BytesIO()
+        #    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        #        df_error.to_excel(writer, index=False)
+     #
+        #    st.download_button(
+        #        label="Download de erros",
+        #        data=output.getvalue(),
+        #        file_name=f'{today}erros.xlsx',
+        #        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",               
+        #    )
+        #    st.dataframe(df_error)
 
         ##### End Banco ###############################
-
-
         
         st.divider()
         with st.spinner('Aguarde...'):
@@ -177,19 +191,22 @@ def app():
             
         else:
             st.success('Concluído com sucesso!', icon="😀")
-
+            
             col1, col2= st.columns(2)
             with col1:
                 output = io.BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                     df_to_save.to_excel(writer, index=False)
-                    # Configurar os parâmetros para o botão de download
+                    
                 st.download_button(
-                        label="Download",
+                    label="Download",
                     data=output.getvalue(),
-                    file_name=f'{today}import.xlsx',
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",               
+                    file_name=f'{today}-import.xlsx',
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",              
                 )
+
+
+          
         
 
 
