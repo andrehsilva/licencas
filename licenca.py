@@ -21,6 +21,7 @@ def app():
     file = st.file_uploader("Importe o relatório de itens em formato xlsx", type=["XLSX"])
     data_atual = date.today().strftime('%d-%m-%Y')
     print(data_atual)
+    
 
     if file is not None:
         df = pd.read_excel(file)
@@ -133,7 +134,6 @@ def app():
         #st.dataframe(df_concat)
 
         ##### Banco ###############################
-        # Conectar ao banco de dados SQLite (isso cria o banco de dados se não existir)
         path_db = 'database.db'
 
         df_full = []
@@ -147,16 +147,18 @@ def app():
 
             # Remove duplicatas do DataFrame carregado do banco de dados
             df_db_clean = df_db.drop_duplicates()
-            df_full = df_db_clean.copy()
             df_to_save = df_concat.merge(df_db_clean, how='outer', indicator=True)
+            st.dataframe(df_to_save)
             df_to_save = df_to_save[df_to_save['_merge'] != 'both']
+            df_to_save = df_to_save.loc[~df_to_save['_merge'].str.contains('both|right')]
  
         else:
             # Se o banco de dados não existir, cria um DataFrame vazio
             conn = sqlite3.connect(path_db)
-            df_concat.to_sql('licencas', conn, index=False, if_exists='replace')
+            df_concat.to_sql('licencas', conn, index=False, if_exists='append')
             conn.close()
             df_to_save = df_concat.copy()
+            st.dataframe(df_to_save)
         
 
         ##### End Banco ###############################
@@ -183,8 +185,11 @@ def app():
                     data=output.getvalue(),
                     file_name=f'{today}import.xlsx',
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    
+                    
                 )
 
+       
 
         
 
