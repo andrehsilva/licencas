@@ -98,7 +98,7 @@ def app():
         
         df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1')
         df = df.drop(columns=['Sku do produto'])
-        df = df.rename(columns={'SchoolId':'School','TenantId':'Tenant', 'N pedido':'OrderNumber', 'Quantidade do produto':'Student', 'SÉRIE_x':'Grade','Data do pedido':'OrderDate', 'PRODUTO':'LicenseName' })
+        df = df.rename(columns={'SchoolId':'School','TenantId':'Tenant', 'N pedido':'OrderNumber', 'Quantidade do produto':'Student', 'TAG REGULAR':'Grade','Data do pedido':'OrderDate', 'PRODUTO':'LicenseName' })
         
         #st.dataframe(df)
         #df.to_excel('output/df.xlsx')
@@ -131,7 +131,7 @@ def app():
         df_concat = pd.concat([df_bilingue,df])
         df_concat = df_concat.sort_values(['School','ComboCode'])
         #df_concat.to_excel('output/df_concat.xlsx')
-        #st.dataframe(df_concat)
+        st.dataframe(df_concat)
 
         ##### Banco ###############################
         path_db = 'database.db'
@@ -148,7 +148,7 @@ def app():
             # Remove duplicatas do DataFrame carregado do banco de dados
             df_db_clean = df_db.drop_duplicates()
             df_to_save = df_concat.merge(df_db_clean, how='outer', indicator=True)
-            st.dataframe(df_to_save)
+            #st.dataframe(df_to_save)
             df_to_save = df_to_save[df_to_save['_merge'] != 'both']
             df_to_save = df_to_save.loc[~df_to_save['_merge'].str.contains('both|right')]
  
@@ -158,7 +158,7 @@ def app():
             df_concat.to_sql('licencas', conn, index=False, if_exists='append')
             conn.close()
             df_to_save = df_concat.copy()
-            st.dataframe(df_to_save)
+            #st.dataframe(df_to_save)
         
 
         ##### End Banco ###############################
