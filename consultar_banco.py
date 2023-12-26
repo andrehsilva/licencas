@@ -20,15 +20,18 @@ def app():
 
     if file is not None:
         df = pd.read_excel(file)
+
+        date_columns = ['StartDate', 'EndDate', 'OrderDate', 'date']
+        for col in date_columns:
+            df[col] = pd.to_datetime(df[col]).dt.strftime('%d/%m/%Y')
         
-        df['StartDate'] = df['StartDate'].astype('datetime64[ns]')
-        df['StartDate'] = df['StartDate'].dt.strftime('%d/%m/%Y')
-        df['EndDate'] = df['EndDate'].astype('datetime64[ns]')
-        df['EndDate'] = df['EndDate'].dt.strftime('%d/%m/%Y')
-        df['OrderDate'] = df['OrderDate'].astype('datetime64[ns]')
-        df['OrderDate'] = df['OrderDate'].dt.strftime('%d/%m/%Y')
-        df['date'] = df['date'].astype('datetime64[ns]')
-        df['date'] = df['date'].dt.strftime('%d/%m/%Y')
+        def remove_accentuation(cnpj):
+            pattern = re.compile('[^A-Za-z0-9]+')
+            return re.sub(pattern, '', cnpj)
+
+        # Aplicar a função à coluna 'CNPJ'
+        df['CNPJ'] = df['CNPJ'].apply(remove_accentuation)
+
         st.dataframe(df)
         conn = sqlite3.connect(path_db)
         df.to_sql('licencas', conn, index=False, if_exists='append')
