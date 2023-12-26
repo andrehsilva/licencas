@@ -20,17 +20,23 @@ def app():
 
     if file is not None:
         df = pd.read_excel(file)
+        df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
+        df['StartDate'] = pd.to_datetime(df['StartDate'], format='%d/%m/%Y')
+        df['EndDate'] = pd.to_datetime(df['EndDate'], format='%d/%m/%Y')
+        df['OrderDate'] = pd.to_datetime(df['OrderDate'], format='%d/%m/%Y')
 
-        date_columns = ['StartDate', 'EndDate', 'OrderDate', 'date']
-        for col in date_columns:
-            df[col] = pd.to_datetime(df[col]).dt.strftime('%d/%m/%Y')
+        
+        df['date'] =  df['date'].dt.strftime('%d/%m/%Y')
+        df['StartDate'] = df['StartDate'].dt.strftime('%d/%m/%Y')
+        df['EndDate'] = df['EndDate'].dt.strftime('%d/%m/%Y')
+        df['OrderDate'] = df['OrderDate'].dt.strftime('%d/%m/%Y')
         
         def remove_accentuation(cnpj):
             pattern = re.compile('[^A-Za-z0-9]+')
             return re.sub(pattern, '', cnpj)
 
         # Aplicar a função à coluna 'CNPJ'
-        df['CNPJ'] = df['CNPJ'].apply(remove_accentuation)
+        #df['CNPJ'] = df['CNPJ'].apply(remove_accentuation)
 
         st.dataframe(df)
         conn = sqlite3.connect(path_db)
