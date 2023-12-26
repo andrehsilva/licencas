@@ -53,7 +53,7 @@ def app():
                                               'Valor total Solução','Porcentagem de desconto do cliente','Método de pagamento','Valor do desconto','Valor liquido',
                                               'Bandeira do cartão','Frete do Marketplace','CLIENTE','TIPO DE FATURAMENTO','Parcelamento','Comissão','UTILIZAÇÃO'])
         #'TIPO DE PRODUTO',
-        #### planilha de soluções ####
+        ### planilha de soluções ####
 
         df_relatorio = df_relatorio.loc[~(df_relatorio['Ean do produto'].isnull())] 
         #df_relatorio = df_relatorio.loc[df['ANO PRODUTO'] == 2024]
