@@ -31,14 +31,12 @@ def app():
         combos = pd.read_excel('input/combos.xlsx')
         combos = combos[['MARCA','SKU','DESCRIÇÃO MAGENTO (B2C e B2B)','PRODUTO','CÓDIGO DO COMBO','TAG REGULAR','TAG BILINGUE','TAG PREMIUM','SÉRIE']]
         combos = combos[~combos['PRODUTO'].str.contains('NÃO SE APLICA')]
-        #st.dataframe(combos)
-        escolas_premium = pd.read_excel('input/base.xlsx', sheet_name='tag_year')
-        #st.dataframe(escolas_premium)
+       
         escolas = pd.read_excel('input/escolas_lex.xlsx')
         #st.dataframe(escolas)
     
         df_relatorio = df.copy()
-        #df_relatorio = df_relatorio.loc[~(df_relatorio['CLIENTE'] == 'B2C')]
+        
         df_relatorio = df_relatorio.loc[df_relatorio['Tipo pessoa'] == 'Pessoa jurídica']
         df_relatorio = df_relatorio.drop(columns=['Nome da loja', 'N pedido pai','Rua (endereco de cadastro)','Status da integração',
                                               'Nome Sobrenome/razao social nome fantasia','CPF','ID Usuário LEX','Rua (endereco de cadastro)',
@@ -53,9 +51,8 @@ def app():
                                               'Bandeira do cartão','Frete do Marketplace','CLIENTE','TIPO DE FATURAMENTO','Parcelamento','Comissão','UTILIZAÇÃO'])
         #'TIPO DE PRODUTO',
         #### planilha de soluções ####
-        solucao = df_relatorio[df_relatorio['Ean do produto'].isnull()]
+
         df_relatorio = df_relatorio.loc[~(df_relatorio['Ean do produto'].isnull())] 
-        #df_relatorio['ANO PRODUTO'] = df_relatorio['ANO PRODUTO'].astype('int64')
         #df_relatorio = df_relatorio.loc[df['ANO PRODUTO'] == 2024]
         df_relatorio['CNPJ'] = pd.to_numeric(df_relatorio['CNPJ'], downcast='integer')
         df_relatorio['Ean do produto'] = pd.to_numeric(df_relatorio['Ean do produto'], downcast='integer')
@@ -63,7 +60,7 @@ def app():
         df_relatorio['Data do pedido'] = df_relatorio['Data do pedido'].astype('datetime64[ns]')
         df_relatorio['Data do pedido'] = df_relatorio['Data do pedido'].dt.strftime('%d/%m/%Y')
         df_relatorio = df_relatorio[df_relatorio['Status do pedido'].isin(['Processando','Aprovado','Parcialmente Entregue','Entregue','Faturado','Parcialmente Faturado','Enviado'])] #Faturado #Boleto Emitido #Estornado #Cancelado
-        df_relatorio = df_relatorio.loc[df_relatorio['Data do pedido'] > '2023-10-01 00:00:00']
+        #df_relatorio = df_relatorio.loc[df_relatorio['Data do pedido'] > '2023-10-01 00:00:00']
         df_relatorio = df_relatorio.drop_duplicates()
         df_relatorio['CNPJ'] = df_relatorio['CNPJ'].astype('int64')
         #st.dataframe(df_relatorio)
@@ -132,7 +129,7 @@ def app():
         df_concat = pd.concat([df_bilingue,df])
         df_concat = df_concat.sort_values(['School','ComboCode'])
         #df_concat.to_excel('output/df_concat.xlsx')
-        #st.dataframe(df_concat)
+        st.dataframe(df_concat)
 
         ##### Banco ###############################
         path_db = 'database.db'
@@ -154,9 +151,6 @@ def app():
             df_to_save = df_to_save.loc[~df_to_save['_merge'].str.contains('both|right')]
             #df_to_save = df_to_save.query('School.notna()')
 
-      
-            
- 
         else:
             # Se o banco de dados não existir, cria um DataFrame vazio,,,
             conn = sqlite3.connect(path_db)

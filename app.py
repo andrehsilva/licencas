@@ -7,7 +7,7 @@ from datetime import datetime, date
 import re
 
 
-import licenca, converter, produto, dados_do_banco
+import licenca, converter, produto, consultar_banco
 
 
 st.set_page_config(
@@ -80,7 +80,7 @@ if check_password():
     if app == "Produto e suas escolas":
         produto.app()
     if app == "Download do banco":
-        dados_do_banco.app()
+        consultar_banco.app()
 
   
    
