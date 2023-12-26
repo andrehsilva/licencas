@@ -38,6 +38,9 @@ def app():
         df_relatorio = df.copy()
         
         df_relatorio = df_relatorio.loc[df_relatorio['Tipo pessoa'] == 'Pessoa jurídica']
+        df_relatorio = df_relatorio.query('(`Codigo cupom` != "AMOST_100%_2022") and (`Codigo cupom` != "AMOST_100%")')
+
+
         df_relatorio = df_relatorio.drop(columns=['Nome da loja', 'N pedido pai','Rua (endereco de cadastro)','Status da integração',
                                               'Nome Sobrenome/razao social nome fantasia','CPF','ID Usuário LEX','Rua (endereco de cadastro)',
                                               'Numero (endereco de cadastro)','Complemento (endereco de cadastro)','Bairro (endereco de cadastro)',
@@ -101,7 +104,18 @@ def app():
         #st.dataframe(df)
         #df.to_excel('output/df.xlsx')
 
-        
+        ###Premium###############################
+        ##########################################
+
+        df_premium = df.query('CNPJ == 56012628004078 or CNPJ == 56012628003349 or CNPJ == 56012628005716 or CNPJ == 56012628003187 or CNPJ == 7549613000121 or CNPJ == 7549613000202 or CNPJ == 7549613000474 or CNPJ == 30298376000276 or CNPJ == 30298376000195 or CNPJ == 23141033000238 or CNPJ == 56012628006011')
+        #st.dataframe(df_premium)
+        df_premium = df_premium[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
+        df_premium = df_premium.rename(columns={'TAG BILINGUE':'Grade'})
+        df_premium[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df_premium[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
+        df_premium = df_premium.sort_values('Student', ascending=False)
+        df_premium['Student'] = 1     
+        df_premium['Teacher'] = 1                  
+
         
         ###BILINGUE###############################
         ##########################################
@@ -112,6 +126,7 @@ def app():
         df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
         df_bilingue = df_bilingue.sort_values('Student', ascending=False)
         df_bilingue['Student'] = 1
+        df_bilingue['Teacher'] = 1
         #st.dataframe(df_bilingue)
         
         ###END BILINGUE###########################
@@ -126,7 +141,7 @@ def app():
      
         ### CONCAT ###############################
         ##########################################
-        df_concat = pd.concat([df_bilingue,df])
+        df_concat = pd.concat([df_bilingue,df_premium,df])
         df_concat = df_concat.sort_values(['School','ComboCode'])
         #df_concat.to_excel('output/df_concat.xlsx')
         st.dataframe(df_concat)
