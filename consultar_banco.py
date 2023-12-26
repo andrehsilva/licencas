@@ -20,7 +20,16 @@ def app():
 
     if file is not None:
         df = pd.read_excel(file)
-        #st.dataframe(df
+        
+        df['StartDate'] = df['StartDate'].astype('datetime64[ns]')
+        df['StartDate'] = df['StartDate'].dt.strftime('%d/%m/%Y')
+        df['EndDate'] = df['EndDate'].astype('datetime64[ns]')
+        df['EndDate'] = df['EndDate'].dt.strftime('%d/%m/%Y')
+        df['OrderDate'] = df['OrderDate'].astype('datetime64[ns]')
+        df['OrderDate'] = df['OrderDate'].dt.strftime('%d/%m/%Y')
+        df['date'] = df['date'].astype('datetime64[ns]')
+        df['date'] = df['date'].dt.strftime('%d/%m/%Y')
+        st.dataframe(df)
         conn = sqlite3.connect(path_db)
         df.to_sql('licencas', conn, index=False, if_exists='append')
         conn.close()
