@@ -16,31 +16,30 @@ year = date.today().strftime('%Y')
 def app():
     st.subheader('Gerador de planilha de importação de licenças Lex!')
 
+
+
     file = st.file_uploader("Importe o relatório de itens em formato .xlsx", type=["XLSX"])
     data_atual = date.today().strftime('%d-%m-%Y')
-    data_2 = date.today().strftime('%d/%m/%Y')
     print(data_atual)
     
 
     if file is not None:
         df = pd.read_excel(file)
-        #file = None
         #st.dataframe(df)
 
         #### IMPORTS DE BASES ##############
         combos = pd.read_excel('input/combos.xlsx')
         combos = combos[['MARCA','SKU','DESCRIÇÃO MAGENTO (B2C e B2B)','PRODUTO','CÓDIGO DO COMBO','TAG REGULAR','TAG BILINGUE','TAG PREMIUM','SÉRIE']]
         combos = combos[~combos['PRODUTO'].str.contains('NÃO SE APLICA')]
-       
-        escolas = pd.read_excel('input/escolas_lex.xlsx')
+        #st.dataframe(combos)
+        escolas_premium = pd.read_excel('input/base.xlsx', sheet_name='tag_year')
+        #st.dataframe(escolas_premium)
+        escolas = pd.read_excel('input/base.xlsx', sheet_name='escolas')
         #st.dataframe(escolas)
     
         df_relatorio = df.copy()
-        
+        #df_relatorio = df_relatorio.loc[~(df_relatorio['CLIENTE'] == 'B2C')]
         df_relatorio = df_relatorio.loc[df_relatorio['Tipo pessoa'] == 'Pessoa jurídica']
-        df_relatorio = df_relatorio.query('(`Codigo cupom` != "AMOST_100%_2022") and (`Codigo cupom` != "AMOST_100%")')
-
-
         df_relatorio = df_relatorio.drop(columns=['Nome da loja', 'N pedido pai','Rua (endereco de cadastro)','Status da integração',
                                               'Nome Sobrenome/razao social nome fantasia','CPF','ID Usuário LEX','Rua (endereco de cadastro)',
                                               'Numero (endereco de cadastro)','Complemento (endereco de cadastro)','Bairro (endereco de cadastro)',
@@ -53,9 +52,10 @@ def app():
                                               'Valor total Solução','Porcentagem de desconto do cliente','Método de pagamento','Valor do desconto','Valor liquido',
                                               'Bandeira do cartão','Frete do Marketplace','CLIENTE','TIPO DE FATURAMENTO','Parcelamento','Comissão','UTILIZAÇÃO'])
         #'TIPO DE PRODUTO',
-        ### planilha de soluções ####
-
+        #### planilha de soluções ####
+        solucao = df_relatorio[df_relatorio['Ean do produto'].isnull()]
         df_relatorio = df_relatorio.loc[~(df_relatorio['Ean do produto'].isnull())] 
+        #df_relatorio['ANO PRODUTO'] = df_relatorio['ANO PRODUTO'].astype('int64')
         #df_relatorio = df_relatorio.loc[df['ANO PRODUTO'] == 2024]
         df_relatorio['CNPJ'] = pd.to_numeric(df_relatorio['CNPJ'], downcast='integer')
         df_relatorio['Ean do produto'] = pd.to_numeric(df_relatorio['Ean do produto'], downcast='integer')
@@ -63,7 +63,7 @@ def app():
         df_relatorio['Data do pedido'] = df_relatorio['Data do pedido'].astype('datetime64[ns]')
         df_relatorio['Data do pedido'] = df_relatorio['Data do pedido'].dt.strftime('%d/%m/%Y')
         df_relatorio = df_relatorio[df_relatorio['Status do pedido'].isin(['Processando','Aprovado','Parcialmente Entregue','Entregue','Faturado','Parcialmente Faturado','Enviado'])] #Faturado #Boleto Emitido #Estornado #Cancelado
-        #df_relatorio = df_relatorio.loc[df_relatorio['Data do pedido'] > '2023-10-01 00:00:00']
+        df_relatorio = df_relatorio.loc[df_relatorio['Data do pedido'] > '2023-10-01 00:00:00']
         df_relatorio = df_relatorio.drop_duplicates()
         df_relatorio['CNPJ'] = df_relatorio['CNPJ'].astype('int64')
         #st.dataframe(df_relatorio)
@@ -71,12 +71,11 @@ def app():
         #st.stop()
 
         df_escolas = escolas.copy()
-        df_escolas = df_escolas.drop(columns=['TenantName'])
+        df_escolas = df_escolas.drop(columns=['TenantName','CorporationName'])
         df_escolas = df_escolas.drop_duplicates()
-        
-        df_escolas['CNPJ'] = df_escolas['CNPJ'].astype('int64')
-        df_escolas = df_escolas[['CNPJ','TenantId','SchoolId','SchoolName']]
+        df_escolas = df_escolas[['SchoolCNPJ','TenantId','SchoolId','SchoolName']]
         df_escolas = df_escolas.dropna()
+        df_escolas = df_escolas.rename(columns={'SchoolCNPJ':'CNPJ'})
         df_escolas = df_escolas[~df_escolas['SchoolName'].str.contains('Concurso de Bolsa')]
         #st.dataframe(df_escolas)
     
@@ -97,43 +96,31 @@ def app():
         
         df = df_relatorio_combos_escolas.copy()
         
-        df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1',date = data_2, type = 'script')
+        df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1')
         df = df.drop(columns=['Sku do produto'])
         df = df.rename(columns={'SchoolId':'School','TenantId':'Tenant', 'N pedido':'OrderNumber', 'Quantidade do produto':'Student', 'TAG REGULAR':'Grade','Data do pedido':'OrderDate', 'PRODUTO':'LicenseName' })
         
         #st.dataframe(df)
         #df.to_excel('output/df.xlsx')
 
-        ###Premium###############################
-        ##########################################
-
-        df_premium = df.query('CNPJ == 56012628004078 or CNPJ == 56012628003349 or CNPJ == 56012628005716 or CNPJ == 56012628003187 or CNPJ == 7549613000121 or CNPJ == 7549613000202 or CNPJ == 7549613000474 or CNPJ == 30298376000276 or CNPJ == 30298376000195 or CNPJ == 23141033000238 or CNPJ == 56012628006011')
-        #st.dataframe(df_premium)
-        df_premium = df_premium[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
-        df_premium = df_premium.rename(columns={'TAG BILINGUE':'Grade'})
-        df_premium[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df_premium[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
-        df_premium = df_premium.sort_values('Student', ascending=False)
-        df_premium['Student'] = 1     
-        df_premium['Teacher'] = 1                  
-
+        
         
         ###BILINGUE###############################
         ##########################################
         df_bilingue = df.loc[df['Nome do produto'].str.contains('HIGH FIVE')]
         #st.dataframe(df_bilingue)
-        df_bilingue = df_bilingue[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
+        df_bilingue = df_bilingue[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
         df_bilingue = df_bilingue.rename(columns={'TAG BILINGUE':'Grade'})
         df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
         df_bilingue = df_bilingue.sort_values('Student', ascending=False)
         df_bilingue['Student'] = 1
-        df_bilingue['Teacher'] = 1
         #st.dataframe(df_bilingue)
         
         ###END BILINGUE###########################
         ##########################################
 
 
-        df = df[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
+        df = df[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto']]
         df[['OrderNumber','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df[['OrderNumber','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
         df = df.sort_values('Student', ascending=False)
 
@@ -141,17 +128,10 @@ def app():
      
         ### CONCAT ###############################
         ##########################################
-        df_concat = pd.concat([df_bilingue,df_premium,df])
+        df_concat = pd.concat([df_bilingue,df])
         df_concat = df_concat.sort_values(['School','ComboCode'])
         #df_concat.to_excel('output/df_concat.xlsx')
-        #st.dataframe(df_concat)
-
-        ###Groupby Somar Students####
-        df_agrupado = df.groupby(['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type'])['Student'].sum().reset_index()
-        df_concat = df_agrupado[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
         st.dataframe(df_concat)
-
-        #st.stop()
 
         ##### Banco ###############################
         path_db = 'database.db'
@@ -171,32 +151,19 @@ def app():
             #st.dataframe(df_to_save)
             df_to_save = df_to_save[df_to_save['_merge'] != 'both']
             df_to_save = df_to_save.loc[~df_to_save['_merge'].str.contains('both|right')]
-            #df_to_save = df_to_save.query('School.notna()')
-
+ 
         else:
-            # Se o banco de dados não existir, cria um DataFrame vazio,,,
+            # Se o banco de dados não existir, cria um DataFrame vazio
             conn = sqlite3.connect(path_db)
             df_concat.to_sql('licencas', conn, index=False, if_exists='append')
             conn.close()
             df_to_save = df_concat.copy()
-            #df_to_save = df_to_save.query('School.notna()')
             #st.dataframe(df_to_save)
-
-        #df_error = df_to_save.query('School.isna()')
-        #if df_error.__len__():
-        #    output = io.BytesIO()
-        #    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        #        df_error.to_excel(writer, index=False)
-     #
-        #    st.download_button(
-        #        label="Download de erros",
-        #        data=output.getvalue(),
-        #        file_name=f'{today}erros.xlsx',
-        #        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",               
-        #    )
-        #    st.dataframe(df_error)
+        
 
         ##### End Banco ###############################
+
+
         
         st.divider()
         with st.spinner('Aguarde...'):
@@ -204,27 +171,23 @@ def app():
 
         if df_to_save.empty:
             st.info('Não há itens a cadastrar, faça o upload de uma nova planilha', icon="😒")
-            
         else:
             st.success('Concluído com sucesso!', icon="😀")
-            
+
             col1, col2= st.columns(2)
             with col1:
                 output = io.BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                     df_to_save.to_excel(writer, index=False)
-                    
+                    # Configurar os parâmetros para o botão de download
                 st.download_button(
-                    label="Download",
+                        label="Download",
                     data=output.getvalue(),
-                    file_name=f'{today}-import.xlsx',
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",              
+                    file_name=f'{today}import.xlsx',
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    
+                    
                 )
-
-
-          
-        
-
 
        
 
