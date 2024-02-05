@@ -52,7 +52,7 @@ def check_password():
 
 if check_password():
     buffer = io.BytesIO()
-
+#
     #configurações do streamlit
 
     
