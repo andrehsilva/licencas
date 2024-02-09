@@ -73,6 +73,7 @@ if check_password():
                 "nav-link-selected": {"background-color": "#208AC0"},}
             )
             
+            
     if app == "Licença 2024":
         licenca.app()
     if app == "Conversor":
