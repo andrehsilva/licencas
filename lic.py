@@ -97,7 +97,8 @@ def app():
         
         df = df_relatorio_combos_escolas.copy()
         
-        df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1',date = data_2, type = 'script')
+        df = df.assign(StartDate='01/01/2024',EndDate='31/12/2024',Coordinator='1',Manager='1', Operator='1',Teacher='1',Sponsor='1', Secretary='1',Reviewer='1',Nurse="1",	Assistant="1", Nutritionist="1", date = data_2, type = 'script')#
+
         df = df.drop(columns=['Sku do produto'])
         df = df.rename(columns={'SchoolId':'School','TenantId':'Tenant', 'N pedido':'OrderNumber', 'Quantidade do produto':'Student', 'TAG REGULAR':'Grade','Data do pedido':'OrderDate', 'PRODUTO':'LicenseName' })
         
@@ -109,9 +110,9 @@ def app():
 
         df_premium = df.query('CNPJ == 56012628004078 or CNPJ == 56012628003349 or CNPJ == 56012628005716 or CNPJ == 56012628003187 or CNPJ == 7549613000121 or CNPJ == 7549613000202 or CNPJ == 7549613000474 or CNPJ == 30298376000276 or CNPJ == 30298376000195 or CNPJ == 23141033000238 or CNPJ == 56012628006011')
         #st.dataframe(df_premium)
-        df_premium = df_premium[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
+        df_premium = df_premium[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist','SchoolName','CNPJ','Ean do produto','date','type']]
         df_premium = df_premium.rename(columns={'TAG BILINGUE':'Grade'})
-        df_premium[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df_premium[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
+        df_premium[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist',]] = df_premium[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist',]]. astype('int64')
         df_premium = df_premium.sort_values('Student', ascending=False)
         df_premium['Student'] = 1     
         df_premium['Teacher'] = 1                  
@@ -121,9 +122,9 @@ def app():
         ##########################################
         df_bilingue = df.loc[df['Nome do produto'].str.contains('HIGH FIVE')]
         #st.dataframe(df_bilingue)
-        df_bilingue = df_bilingue[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
+        df_bilingue = df_bilingue[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','TAG BILINGUE','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist','SchoolName','CNPJ','Ean do produto','date','type']]
         df_bilingue = df_bilingue.rename(columns={'TAG BILINGUE':'Grade'})
-        df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
+        df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist']] = df_bilingue[['OrderNumber','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist']]. astype('int64')
         df_bilingue = df_bilingue.sort_values('Student', ascending=False)
         df_bilingue['Student'] = 1
         df_bilingue['Teacher'] = 1
@@ -133,8 +134,8 @@ def app():
         ##########################################
 
 
-        df = df[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
-        df[['OrderNumber','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']] = df[['OrderNumber','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer']]. astype('int64')
+        df = df[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist','SchoolName','CNPJ','Ean do produto','date','type']]
+        df[['OrderNumber','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist']] = df[['OrderNumber','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist']]. astype('int64')
         df = df.sort_values('Student', ascending=False)
 
         df['Teacher'] = df['Student'].apply(lambda x: 1 if x < 21 else x//20)
@@ -147,8 +148,8 @@ def app():
         #st.dataframe(df_concat)
 
         ###Groupby Somar Students####
-        df_agrupado = df.groupby(['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type'])['Student'].sum().reset_index()
-        df_concat = df_agrupado[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','SchoolName','CNPJ','Ean do produto','date','type']]
+        df_agrupado = df.groupby(['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist','SchoolName','CNPJ','Ean do produto','date','type'])['Student'].sum().reset_index()
+        df_concat = df_agrupado[['Tenant','School','ComboCode','LicenseName','StartDate','EndDate','Grade','OrderNumber','OrderDate','Student','Coordinator','Manager','Operator','Teacher','Sponsor','Secretary','Reviewer','Nurse','Assistant','Nutritionist','SchoolName','CNPJ','Ean do produto','date','type']]
         st.dataframe(df_concat)
 
         
