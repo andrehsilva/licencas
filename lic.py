@@ -17,6 +17,7 @@ def app():
     st.subheader('Gerador de planilha de importação de licenças Lex!')
 
     file = st.file_uploader("Importe o relatório de itens em formato .xlsx", type=["XLSX"])
+  
     data_atual = date.today().strftime('%d-%m-%Y')
     data_2 = date.today().strftime('%d/%m/%Y')
     print(data_atual)
@@ -26,6 +27,9 @@ def app():
         df = pd.read_excel(file)
         #file = None
         #st.dataframe(df)
+    
+
+
 
         #### IMPORTS DE BASES ##############
         combos = pd.read_excel('input/combos.xlsx')
@@ -34,7 +38,7 @@ def app():
        
         escolas = pd.read_excel('input/escolas_lex.xlsx')
         #st.dataframe(escolas)
-    
+        
         df_relatorio = df.copy()
         
         df_relatorio = df_relatorio.loc[df_relatorio['Tipo pessoa'] == 'Pessoa jurídica']
